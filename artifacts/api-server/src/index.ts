@@ -32,4 +32,30 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
   startBot();
+  startSelfPing();
 });
+
+function startSelfPing() {
+  const domains = process.env["REPLIT_DOMAINS"];
+  if (!domains) {
+    logger.warn("REPLIT_DOMAINS غير موجود — لن يتم تشغيل Self-Ping");
+    return;
+  }
+
+  const host = domains.split(",")[0]?.trim();
+  const url = `https://${host}/api/healthz`;
+
+  logger.info({ url }, "[Self-Ping] تم تفعيل نظام منع النوم");
+
+  // انتظر 10 ثوانٍ ثم ابدأ
+  setTimeout(() => {
+    const ping = () => {
+      fetch(url)
+        .then((r) => logger.info({ status: r.status }, "[Self-Ping] مرسل"))
+        .catch((e) => logger.warn({ err: String(e) }, "[Self-Ping] فشل — إعادة المحاولة لاحقاً"));
+    };
+
+    ping();
+    setInterval(ping, 3 * 60 * 1000); // كل 3 دقائق
+  }, 10_000);
+}
