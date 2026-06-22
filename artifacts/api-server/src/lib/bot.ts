@@ -695,6 +695,16 @@ export function startBot() {
     logger.info({ userID: currentUserID }, "تم الاتصال بماسنجر فيسبوك بنجاح");
     logger.info({ developers: [...DEVELOPERS] }, "المطورون المعتمدون");
 
+    // ── حفظ الكوكيز المحدّثة فور تسجيل الدخول الناجح ────────────────────────
+    try {
+      const updatedAppState = fbApi.getAppState();
+      const cookiePath = resolvePath("cookies.json");
+      fs.writeFileSync(cookiePath, JSON.stringify(updatedAppState, null, 4), "utf-8");
+      logger.info({ path: cookiePath }, "تم حفظ الكوكيز المحدّثة");
+    } catch (e) {
+      logger.warn({ err: e }, "تحذير: فشل حفظ الكوكيز المحدّثة");
+    }
+
     api.setOptions({
       selfListen: false,
       listenEvents: true,
@@ -706,9 +716,28 @@ export function startBot() {
     logger.info("بدء الاستماع عبر MQTT...");
 
     api.listenMqtt((listenErr: any, message: any) => {
-      // تجاهل أخطاء MQTT — ws3-fca يتولى إعادة الاتصال تلقائياً
       if (listenErr) {
-        logger.warn({ err: listenErr?.error ?? String(listenErr) }, "تحذير MQTT — البوت يحاول إعادة الاتصال");
+        const errMsg = listenErr?.error ?? String(listenErr);
+        logger.warn({ err: errMsg }, "خطأ MQTT");
+
+        // أخطاء قاتلة تستوجب إعادة تسجيل الدخول كاملاً
+        const isFatal =
+          typeof errMsg === "string" &&
+          (errMsg.includes("Connection refused") ||
+            errMsg.includes("Failed to get sequence ID") ||
+            errMsg.includes("invalid appstate") ||
+            errMsg.includes("Not logged in"));
+
+        if (isFatal) {
+          logger.warn("خطأ MQTT قاتل — إعادة تشغيل البوت بعد 30 ثانية");
+          api = null;
+          botStatus = "disconnected";
+          if (reconnectTimer) clearTimeout(reconnectTimer);
+          reconnectTimer = setTimeout(() => {
+            botStatus = "disconnected";
+            startBot();
+          }, 30000);
+        }
         return;
       }
       if (!message) return;
