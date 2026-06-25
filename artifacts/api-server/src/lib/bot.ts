@@ -620,6 +620,23 @@ export function getBotApi() { return api; }
 export function addDeveloper(uid: string) { DEVELOPERS.add(uid); }
 export function removeDeveloper(uid: string) { DEVELOPERS.delete(uid); }
 
+// ── تحديث الكوكيز لحظياً وإعادة الاتصال بدون إعادة تشغيل السيرفر ─────────────
+export function reloadCookies(newCookies: any[]) {
+  const cookiePath = resolvePath("cookies.json");
+  fs.writeFileSync(cookiePath, JSON.stringify(newCookies, null, 4), "utf-8");
+  logger.info({ path: cookiePath }, "تم كتابة الكوكيز الجديدة — جارٍ إعادة الاتصال");
+
+  // أوقف المؤقت الحالي وأعد الحالة
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  api = null;
+  botStatus = "disconnected";
+  botError = null;
+  botRunning = true;
+
+  // أعد الاتصال فوراً
+  startBot();
+}
+
 // ── تحميل الكوكيز ─────────────────────────────────────────────────────────────
 function loadCookies(): any[] {
   const candidates = [

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getBotStatus, getBotApi, startBot, addDeveloper, removeDeveloper } from "../lib/bot.js";
+import { getBotStatus, getBotApi, startBot, addDeveloper, removeDeveloper, reloadCookies } from "../lib/bot.js";
 
 const botRouter = Router();
 
@@ -35,6 +35,17 @@ botRouter.post("/bot/developer/remove", (req, res) => {
   if (!uid) { res.status(400).json({ error: "uid مطلوب" }); return; }
   removeDeveloper(uid);
   res.json({ success: true, message: `تمت إزالة ${uid} من المطورين.` });
+});
+
+// تحديث الكوكيز لحظياً بدون إعادة تشغيل السيرفر
+botRouter.post("/bot/reload-cookies", (req, res) => {
+  const cookies = req.body;
+  if (!Array.isArray(cookies) || cookies.length === 0) {
+    res.status(400).json({ error: "يجب إرسال مصفوفة كوكيز صحيحة" });
+    return;
+  }
+  reloadCookies(cookies);
+  res.json({ success: true, message: "تم تحديث الكوكيز وإعادة الاتصال فوراً ✓" });
 });
 
 export default botRouter;
