@@ -546,8 +546,14 @@ async function handleMessage(
     if (!newName) { send(threadID, "📌 الاستخدام: هوية [الاسم الجديد]"); return; }
     try {
       api.setTitle(newName, threadID, (err: any) => {
-        if (err) send(threadID, `❌ فشل تغيير الاسم: ${err.error || err}`);
-        else send(threadID, `✅ تم تغيير اسم الجروب إلى: ${newName}`);
+        if (err) { send(threadID, `❌ فشل تغيير الاسم: ${err.error || err}`); return; }
+        // إذا كان الدرع نشطاً → حدّث الاسم المحمي ليكون الاسم الجديد
+        if (protectedThreads.has(threadID)) {
+          protectedGroupNames.set(threadID, newName);
+          send(threadID, `✅ تم تغيير اسم الجروب إلى: ${newName}\n🛡️ تم تحديث الاسم المحمي أيضاً.`);
+        } else {
+          send(threadID, `✅ تم تغيير اسم الجروب إلى: ${newName}`);
+        }
       });
     } catch {}
     return;
@@ -783,13 +789,15 @@ export function startBot() {
         if (protectedThreads.has(tid)) {
           const originalName = protectedGroupNames.get(tid);
           const newName: string = message.logMessageData?.name ?? "";
+          const changerID: string = message.author ?? message.senderID ?? "مجهول";
           if (originalName && newName !== originalName) {
-            logger.info({ tid, originalName, newName }, "⚠️ محاولة تغيير اسم الجروب — جارٍ الاستعادة");
+            logger.info({ tid, originalName, newName, changerID }, "⚠️ محاولة تغيير اسم الجروب — جارٍ الاستعادة");
+            try { api.setTitle(originalName, tid, () => {}); } catch {}
             try {
-              api.setTitle(originalName, tid, () => {});
-            } catch {}
-            try {
-              api.sendMessage(`🛡️ تم رصد تغيير الاسم والعودة إليه تلقائياً.`, tid, () => {});
+              api.sendMessage(
+                `🛡️ درع حماية الاسم\n\n❌ تم رصد محاولة تغيير الاسم!\n👤 المُغيِّر: ${changerID}\n🔄 الاسم المحاول: ${newName}\n✅ تم استعادة الاسم الأصلي: ${originalName}`,
+                tid, () => {}
+              );
             } catch {}
           }
         }
