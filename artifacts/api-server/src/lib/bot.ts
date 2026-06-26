@@ -544,12 +544,18 @@ async function handleMessage(
   if (text.startsWith("هوية")) {
     const newName = text.replace("هوية", "").trim();
     if (!newName) { send(threadID, "📌 الاستخدام: هوية [الاسم الجديد]"); return; }
+    // حدّث الاسم المحمي فوراً قبل الطلب لتفادي تعارض الدرع
+    const wasProtected = protectedThreads.has(threadID);
+    if (wasProtected) protectedGroupNames.set(threadID, newName);
     try {
       api.setTitle(newName, threadID, (err: any) => {
-        if (err) { send(threadID, `❌ فشل تغيير الاسم: ${err.error || err}`); return; }
-        // إذا كان الدرع نشطاً → حدّث الاسم المحمي ليكون الاسم الجديد
-        if (protectedThreads.has(threadID)) {
-          protectedGroupNames.set(threadID, newName);
+        if (err) {
+          // أعد الاسم القديم في الخريطة إذا فشل التغيير
+          if (wasProtected) protectedGroupNames.set(threadID, protectedGroupNames.get(threadID) ?? newName);
+          send(threadID, `❌ فشل تغيير الاسم: ${err.error || err}`);
+          return;
+        }
+        if (wasProtected) {
           send(threadID, `✅ تم تغيير اسم الجروب إلى: ${newName}\n🛡️ تم تحديث الاسم المحمي أيضاً.`);
         } else {
           send(threadID, `✅ تم تغيير اسم الجروب إلى: ${newName}`);
