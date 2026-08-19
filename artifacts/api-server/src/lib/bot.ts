@@ -614,15 +614,8 @@ async function handleMessage(
   if (lower === "/attack") {
     if (activeStorms.has(threadID)) { send(threadID, "🌪️ العاصفة نشطة بالفعل."); return; }
     send(threadID, "🌪️ العاصفة بدأت...");
-    const stormInterval = setInterval(() => { send(threadID, STORM_TEXT); }, 3000);
+    const stormInterval = setInterval(() => { send(threadID, STORM_TEXT); }, 22000);
     activeStorms.set(threadID, stormInterval);
-    setTimeout(() => {
-      if (activeStorms.get(threadID) === stormInterval) {
-        clearInterval(stormInterval);
-        activeStorms.delete(threadID);
-        send(threadID, "✅ انتهت العاصفة بعد 22 ثانية.");
-      }
-    }, 22000);
     return;
   }
 
