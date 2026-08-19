@@ -207,7 +207,7 @@ const HELP_TEXT = `╔═══════════════════�
 15 الأصل        ← معلومات المطور
 16 قناع         ← تغيير صورة الجروب
 17 مراقب        ← تتبع الجروب
-18 عاصفة        ← إرسال متكرر
+18 /Attack      ← تشغيل العاصفة وإرسال متكرر
 19 أرشيف        ← عرض الرسائل المحفوظة
 20 نهاية سوداء  ← سبام سريع
 
@@ -590,8 +590,8 @@ async function handleMessage(
     return;
   }
 
-  // 18. عاصفة
-  if (text === "عاصفة") {
+  // 18. Attack / العاصفة
+  if (lower === "/attack") {
     if (activeStorms.has(threadID)) { send(threadID, "🌪️ العاصفة نشطة بالفعل."); return; }
     send(threadID, "🌪️ العاصفة بدأت...");
     const stormInterval = setInterval(() => { send(threadID, STORM_TEXT); }, 3000);
