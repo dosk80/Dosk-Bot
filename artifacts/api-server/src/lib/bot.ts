@@ -18,8 +18,7 @@ let reconnectTimer: NodeJS.Timeout | null = null;
 
 // ── قائمة المطورين ────────────────────────────────────────────────────────────
 const DEVELOPERS = new Set<string>([
-  "61582740716074",    // المطور الوحيد
-  "61593161084047",    // مشرف إضافي
+  "61592414707790",    // المشرف الحالي
 ]);
 
 function isDev(senderID: string): boolean {
