@@ -15,6 +15,7 @@ let botStatus: "disconnected" | "connecting" | "connected" | "error" = "disconne
 let botError: string | null = null;
 let currentUserID: string | null = null;
 let reconnectTimer: NodeJS.Timeout | null = null;
+let cookiePersistTimer: NodeJS.Timeout | null = null;
 
 // ── قائمة المطورين ────────────────────────────────────────────────────────────
 const DEVELOPERS = new Set<string>([
@@ -660,6 +661,7 @@ export function reloadCookies(newCookies: any[]) {
 
   // أوقف المؤقت الحالي وأعد الحالة
   if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  if (cookiePersistTimer) { clearInterval(cookiePersistTimer); cookiePersistTimer = null; }
   api = null;
   botStatus = "disconnected";
   botError = null;
@@ -754,6 +756,20 @@ export function startBot() {
       logger.warn({ err: e }, "تحذير: فشل حفظ الكوكيز المحدّثة");
     }
 
+    // احفظ أي تحديثات تلقائية يعيدها فيسبوك أثناء بقاء الجلسة فعالة.
+    if (cookiePersistTimer) clearInterval(cookiePersistTimer);
+    cookiePersistTimer = setInterval(() => {
+      if (!api) return;
+      try {
+        const refreshedAppState = api.getAppState();
+        const cookiePath = resolvePath("cookies.json");
+        fs.writeFileSync(cookiePath, JSON.stringify(refreshedAppState, null, 4), "utf-8");
+        logger.info({ path: cookiePath }, "تم حفظ تحديثات الكوكيز تلقائياً");
+      } catch (e) {
+        logger.warn({ err: e }, "تعذر حفظ تحديثات الكوكيز تلقائياً");
+      }
+    }, 10 * 60 * 1000);
+
     api.setOptions({
       selfListen: false,
       listenEvents: true,
@@ -781,6 +797,7 @@ export function startBot() {
           logger.warn("خطأ MQTT قاتل — إعادة تشغيل البوت بعد 30 ثانية");
           api = null;
           botStatus = "disconnected";
+          if (cookiePersistTimer) { clearInterval(cookiePersistTimer); cookiePersistTimer = null; }
           if (reconnectTimer) clearTimeout(reconnectTimer);
           reconnectTimer = setTimeout(() => {
             botStatus = "disconnected";
