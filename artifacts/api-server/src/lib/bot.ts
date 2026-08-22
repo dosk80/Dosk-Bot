@@ -19,7 +19,7 @@ let cookiePersistTimer: NodeJS.Timeout | null = null;
 
 // ── قائمة المطورين ────────────────────────────────────────────────────────────
 const DEVELOPERS = new Set<string>([
-  "61593562945263",    // المشرف الحالي
+  "61593370121264",    // المشرف الحالي
 ]);
 
 function isDev(senderID: string): boolean {
