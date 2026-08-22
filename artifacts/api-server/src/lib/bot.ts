@@ -285,35 +285,36 @@ async function handleMessage(
     return;
   }
 
+  // ── بحث عن صورة شخصية (متاح للجميع) ──────────────────────────────────────
+  if (lower.startsWith("/بحث")) {
+    const character = text.replace(/^\/بحث\s*/i, "").trim();
+    if (!character) {
+      send(threadID, "📌 الاستخدام: /بحث [اسم الشخصية]");
+      return;
+    }
+    send(threadID, `🔎 جارٍ البحث عن صورة ${character}...`);
+    const imageUrl = await searchDDGImage(character);
+    if (!imageUrl) {
+      send(threadID, `❌ لم أجد صورة مناسبة لـ ${character}.`);
+      return;
+    }
+    const imagePath = await downloadToTemp(imageUrl);
+    if (!imagePath) {
+      send(threadID, "❌ تعذر تحميل الصورة.");
+      return;
+    }
+    sendFile(threadID, imagePath);
+    setTimeout(() => { try { fs.unlinkSync(imagePath); } catch {} }, 30000);
+    return;
+  }
+
   if (lower === "انتصار") {
     send(threadID, `𝓘𝓽 𝔀𝓪𝓼𝓷'𝓽 𝓪 𝓰𝓪𝓶𝓮… 𝓲𝓽 𝔀𝓪𝓼 𝓪 𝓵𝓮𝓼𝓼𝓸𝓷. 𝓨𝓸𝓾 𝓬𝓪𝓶𝓮 𝔀𝓲𝓽𝓱 𝓱𝓸𝓹𝓮… 𝓘 𝓵𝓮𝓯𝓽 𝔂𝓸𝓾 𝔀𝓲𝓽𝓱 𝓻𝓮𝓪𝓵𝓲𝓽𝔂.\n"𝑫𝑶𝑺𝑲🌬"`);
     sendFile(threadID, resolvePath("entesar.jpg"));
     return;
   }
 
-  // ── فعالية: تخمين الرقم ────────────────────────────────────────────────────
-  if (lower === "تخمين") {
-    if (activeGames.has(threadID)) {
-      send(threadID, "🎮 لعبة جارية بالفعل! خمّن رقماً من 1 إلى 100 🔢");
-      return;
-    }
-    const target = Math.floor(Math.random() * 100) + 1;
-    activeGames.set(threadID, { target, attempts: 0 });
-    send(threadID, "🎮 بدأت لعبة تخمين الرقم!\nخمّن رقماً من 1 إلى 100 🔢\n\n— اكتب: ايقاف التخمين — لإنهاء اللعبة");
-    return;
-  }
-
-  if (lower === "إيقاف التخمين" || lower === "ايقاف التخمين" || lower === "وقف التخمين") {
-    if (activeGames.has(threadID)) {
-      const g = activeGames.get(threadID)!;
-      activeGames.delete(threadID);
-      send(threadID, `🛑 انتهت اللعبة.\nكان الرقم: ${g.target} 🎯`);
-    } else {
-      send(threadID, "⚠️ لا توجد لعبة جارية.");
-    }
-    return;
-  }
-
+  // ── المشاركة في فعالية التخمين متاحة لجميع الأعضاء ─────────────────────────
   if (activeGames.has(threadID) && /^\d+$/.test(text)) {
     const guess = parseInt(text, 10);
     if (guess < 1 || guess > 100) { send(threadID, "⚠️ الرقم يجب أن يكون بين 1 و 100"); return; }
@@ -329,11 +330,6 @@ async function handleMessage(
     }
     return;
   }
-
-  // ── فعالية: معلومة / نكتة / اقتباس ───────────────────────────────────────
-  if (lower === "معلومة") { send(threadID, pick(TRIVIA)); return; }
-  if (lower === "نكتة")   { send(threadID, pick(JOKES));  return; }
-  if (lower === "اقتباس") { send(threadID, pick(QUOTES)); return; }
 
   // ── ردود الدردشة الطبيعية (متاحة للجميع) ─────────────────────────────────
   const greetWords = ["هلا", "هلو", "هاي", "مرحبا", "أهلا", "اهلا", "يسعدك", "ههلا"];
@@ -413,6 +409,33 @@ async function handleMessage(
 
   // 1. Help / الظل
   if (lower === "/help" || text === "الظل") { send(threadID, HELP_TEXT); return; }
+
+  // ── الفعاليات للمطور فقط ───────────────────────────────────────────────────
+  if (lower === "تخمين") {
+    if (activeGames.has(threadID)) {
+      send(threadID, "🎮 لعبة جارية بالفعل! خمّن رقماً من 1 إلى 100 🔢");
+      return;
+    }
+    const target = Math.floor(Math.random() * 100) + 1;
+    activeGames.set(threadID, { target, attempts: 0 });
+    send(threadID, "🎮 بدأت لعبة تخمين الرقم!\nخمّن رقماً من 1 إلى 100 🔢\n\n— اكتب: ايقاف التخمين — لإنهاء اللعبة");
+    return;
+  }
+
+  if (lower === "إيقاف التخمين" || lower === "ايقاف التخمين" || lower === "وقف التخمين") {
+    if (activeGames.has(threadID)) {
+      const g = activeGames.get(threadID)!;
+      activeGames.delete(threadID);
+      send(threadID, `🛑 انتهت اللعبة.\nكان الرقم: ${g.target} 🎯`);
+    } else {
+      send(threadID, "⚠️ لا توجد لعبة جارية.");
+    }
+    return;
+  }
+
+  if (lower === "معلومة") { send(threadID, pick(TRIVIA)); return; }
+  if (lower === "نكتة")   { send(threadID, pick(JOKES));  return; }
+  if (lower === "اقتباس") { send(threadID, pick(QUOTES)); return; }
 
   // 2. استدعاء
   if (text.startsWith("استدعاء")) {
