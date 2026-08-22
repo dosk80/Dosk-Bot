@@ -5,5 +5,5 @@ generated = []
 id = "irwAp99XAblFp7Oymg17N"
 uri = "file://artifacts/api-server/dusk-bot-archive.zip"
 type = "unspecified"
-title = "DUSK Bot Archive"
-description = "أرشيف يحتوي على كود البوت وملفاته ووسائطه. تم استبعاد كوكيز تسجيل الدخول لحماية الحساب."
+title = "DUSK Bot Archive - Updated"
+description = "النسخة المحدثة من البوت مع الدردشة والفعاليات وأمر بحث الصور والعاصفة بفاصل 22 ثانية. كوكيز تسجيل الدخول غير مرفقة لحماية الحساب."
