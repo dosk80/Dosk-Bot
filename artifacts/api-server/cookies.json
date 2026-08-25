@@ -6,7 +6,7 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.686Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "sb",
@@ -15,7 +15,7 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.688Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "ps_l",
@@ -24,7 +24,7 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.688Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "ps_n",
@@ -33,16 +33,21 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "datr",
         "value": "EQtmatOR154E71LATHKe1QtK",
+        "expires": "2027-09-29T19:25:55.000Z",
+        "maxAge": 34560000,
         "domain": "facebook.com",
         "path": "/",
+        "secure": true,
+        "httpOnly": true,
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z",
+        "sameSite": "none"
     },
     {
         "key": "vpd",
@@ -51,7 +56,7 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "pas",
@@ -60,7 +65,7 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "c_user",
@@ -69,7 +74,7 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "xs",
@@ -78,7 +83,7 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "fr",
@@ -91,7 +96,7 @@
         "httpOnly": true,
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z",
+        "lastAccessed": "2026-08-25T19:28:57.939Z",
         "sameSite": "none"
     },
     {
@@ -101,7 +106,7 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "fbl_st",
@@ -110,7 +115,7 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     },
     {
         "key": "wl_cbv",
@@ -119,6 +124,6 @@
         "path": "/",
         "hostOnly": false,
         "creation": "2026-08-25T19:08:55.689Z",
-        "lastAccessed": "2026-08-25T19:08:57.936Z"
+        "lastAccessed": "2026-08-25T19:28:57.939Z"
     }
 ]

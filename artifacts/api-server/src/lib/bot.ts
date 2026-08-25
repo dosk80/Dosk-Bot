@@ -112,17 +112,13 @@ function send(threadID: string, body: string) {
   try { api.sendMessage(body, threadID); } catch {}
 }
 
-function sendFile(threadID: string, filePath: string) {
-  if (!api) return;
-  if (!filePath || !fs.existsSync(filePath)) {
-    send(threadID, "⚠️ الملف غير موجود.");
-    return;
-  }
+function sendAudioFile(threadID: string, filePath: string) {
+  if (!api || !filePath || !fs.existsSync(filePath)) return;
   try {
     const stream = fs.createReadStream(filePath);
     api.sendMessage({ attachment: stream }, threadID);
   } catch (e) {
-    logger.error({ err: e, filePath }, "خطأ إرسال ملف");
+    logger.error({ err: e, filePath }, "خطأ إرسال الملف الصوتي");
   }
 }
 
@@ -260,57 +256,15 @@ async function handleMessage(
     return;
   }
 
-  if (lower === "دوسك") {
-    const videoPath = resolvePath("dosk.mp4");
-    sendFile(threadID, videoPath);
-    return;
-  }
-
-  if (lower.includes("بيضاني") || lower.includes("بضاني")) {
-    const bidhaniPath = resolvePath("bidhani.jpg");
-    if (fs.existsSync(bidhaniPath)) sendFile(threadID, bidhaniPath);
-    return;
-  }
-
-  if (lower.includes("احبك") || lower.includes("أحبك") || lower.includes("كيوت")) {
-    const cutePath = resolvePath("cute.mp4");
-    if (fs.existsSync(cutePath)) sendFile(threadID, cutePath);
-    return;
-  }
-
   if (lower.startsWith("صوت")) {
     const voicePath = resolvePath("voice.mp3");
-    if (fs.existsSync(voicePath)) sendFile(threadID, voicePath);
+    if (fs.existsSync(voicePath)) sendAudioFile(threadID, voicePath);
     else send(threadID, "🎤 لا يوجد ملف صوتي محفوظ حالياً.");
-    return;
-  }
-
-  // ── بحث عن صورة شخصية (متاح للجميع) ──────────────────────────────────────
-  if (lower.startsWith("/بحث")) {
-    const character = text.replace(/^\/بحث\s*/i, "").trim();
-    if (!character) {
-      send(threadID, "📌 الاستخدام: /بحث [اسم الشخصية]");
-      return;
-    }
-    send(threadID, `🔎 جارٍ البحث عن صورة ${character}...`);
-    const imageUrl = await searchDDGImage(character);
-    if (!imageUrl) {
-      send(threadID, `❌ لم أجد صورة مناسبة لـ ${character}.`);
-      return;
-    }
-    const imagePath = await downloadToTemp(imageUrl);
-    if (!imagePath) {
-      send(threadID, "❌ تعذر تحميل الصورة.");
-      return;
-    }
-    sendFile(threadID, imagePath);
-    setTimeout(() => { try { fs.unlinkSync(imagePath); } catch {} }, 30000);
     return;
   }
 
   if (lower === "انتصار") {
     send(threadID, `𝓘𝓽 𝔀𝓪𝓼𝓷'𝓽 𝓪 𝓰𝓪𝓶𝓮… 𝓲𝓽 𝔀𝓪𝓼 𝓪 𝓵𝓮𝓼𝓼𝓸𝓷. 𝓨𝓸𝓾 𝓬𝓪𝓶𝓮 𝔀𝓲𝓽𝓱 𝓱𝓸𝓹𝓮… 𝓘 𝓵𝓮𝓯𝓽 𝔂𝓸𝓾 𝔀𝓲𝓽𝓱 𝓻𝓮𝓪𝓵𝓲𝓽𝔂.\n"𝑫𝑶𝑺𝑲🌬"`);
-    sendFile(threadID, resolvePath("entesar.jpg"));
     return;
   }
 
@@ -392,20 +346,6 @@ async function handleMessage(
   }
 
   // ── أوامر المطورين ────────────────────────────────────────────────────────
-
-  // edit
-  if (lower.startsWith("edit ") || lower.startsWith("ادت ") || lower.startsWith("إدت ")) {
-    const character = body.trim().replace(/^(edit|ادت|إدت)\s+/i, "").trim();
-    if (!character) { send(threadID, "📌 اكتب اسم الشخصية بعد edit"); return; }
-    send(threadID, `🔍 جارٍ البحث عن صور ${character}...`);
-    const imageUrl = await searchDDGImage(`${character} edit`);
-    if (!imageUrl) { send(threadID, `❌ لم أجد نتائج لـ ${character}`); return; }
-    const tmpFile = await downloadToTemp(imageUrl);
-    if (!tmpFile) { send(threadID, `❌ فشل تحميل الصورة`); return; }
-    sendFile(threadID, tmpFile);
-    setTimeout(() => { try { fs.unlinkSync(tmpFile); } catch {} }, 30000);
-    return;
-  }
 
   // 1. Help / الظل
   if (lower === "/help" || text === "الظل") { send(threadID, HELP_TEXT); return; }
