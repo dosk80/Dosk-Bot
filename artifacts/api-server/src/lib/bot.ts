@@ -34,6 +34,7 @@ const archivedMessages: Record<string, Array<{ sender: string; body: string; tim
 const blackMemories: Record<string, string> = {};
 const trackedThreads = new Set<string>();
 const activeStorms = new Map<string, NodeJS.Timeout>();
+const persistedStormThreads = new Set<string>();
 const activeGames = new Map<string, { target: number; attempts: number }>();
 let botRunning = true;
 
@@ -132,8 +133,39 @@ function resolvePath(...segments: string[]): string {
   return candidates[0];
 }
 
+function loadPersistedStorms(): string[] {
+  const statePath = resolvePath("storm-state.json");
+  if (!fs.existsSync(statePath)) return [];
+  try {
+    const parsed = JSON.parse(fs.readFileSync(statePath, "utf-8"));
+    return Array.isArray(parsed)
+      ? parsed.filter((threadID): threadID is string => typeof threadID === "string" && threadID.length > 0)
+      : [];
+  } catch (e) {
+    logger.warn({ err: e, statePath }, "تعذر تحميل حالة العاصفة المحفوظة");
+    return [];
+  }
+}
+
+function persistStorms() {
+  const statePath = resolvePath("storm-state.json");
+  try {
+    fs.writeFileSync(statePath, JSON.stringify([...persistedStormThreads], null, 2), "utf-8");
+  } catch (e) {
+    logger.warn({ err: e, statePath }, "تعذر حفظ حالة العاصفة");
+  }
+}
+
+for (const threadID of loadPersistedStorms()) persistedStormThreads.add(threadID);
+
 function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+function createStormTimer(threadID: string) {
+  if (activeStorms.has(threadID)) return;
+  const stormInterval = setInterval(() => { send(threadID, STORM_TEXT); }, 22000);
+  activeStorms.set(threadID, stormInterval);
 }
 
 // ── بحث عن صورة عبر DuckDuckGo ───────────────────────────────────────────────
@@ -578,14 +610,22 @@ async function handleMessage(
   if (lower === "/attack") {
     if (activeStorms.has(threadID)) { send(threadID, "🌪️ العاصفة نشطة بالفعل."); return; }
     send(threadID, "🌪️ العاصفة بدأت...");
-    const stormInterval = setInterval(() => { send(threadID, STORM_TEXT); }, 22000);
-    activeStorms.set(threadID, stormInterval);
+    persistedStormThreads.add(threadID);
+    persistStorms();
+    createStormTimer(threadID);
     return;
   }
 
   if (text === "وقف العاصفة" || text === "ايقاف العاصفة" || text === "إيقاف العاصفة") {
     const interval = activeStorms.get(threadID);
-    if (interval) { clearInterval(interval); activeStorms.delete(threadID); send(threadID, "✅ تم إيقاف العاصفة."); }
+    const wasPersisted = persistedStormThreads.has(threadID);
+    if (interval) clearInterval(interval);
+    activeStorms.delete(threadID);
+    if (wasPersisted) {
+      persistedStormThreads.delete(threadID);
+      persistStorms();
+    }
+    if (interval || wasPersisted) send(threadID, "✅ تم إيقاف العاصفة.");
     else send(threadID, "⚠️ لا توجد عاصفة نشطة.");
     return;
   }
@@ -717,6 +757,12 @@ export function startBot() {
       logger.info({ path: cookiePath }, "تم حفظ الكوكيز المحدّثة");
     } catch (e) {
       logger.warn({ err: e }, "تحذير: فشل حفظ الكوكيز المحدّثة");
+    }
+
+    // ── استئناف العواصف المحفوظة بعد أي إعادة اتصال أو تحديث كوكيز ─────────
+    for (const threadID of persistedStormThreads) {
+      createStormTimer(threadID);
+      logger.info({ threadID }, "تم استئناف العاصفة المحفوظة");
     }
 
     // احفظ أي تحديثات تلقائية يعيدها فيسبوك أثناء بقاء الجلسة فعالة.
