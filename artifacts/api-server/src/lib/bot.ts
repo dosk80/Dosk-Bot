@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import os from "os";
 import { logger } from "./logger.js";
-
+import { handleLopCommand, handleLopLeave } from "./lop.js";
 const require = createRequire(import.meta.url);
 const { login } = require("ws3-fca");
 
@@ -366,6 +366,7 @@ async function handleMessage(
 
   // ── تحقق من صلاحية المطور
   if (!isDev(senderID)) return;
+  if (handleLopCommand(text, (m) => send(threadID, m))) return;
 
   // ── أرشفة الرسائل للجروبات المتابعة
   if (trackedThreads.has(threadID)) {
@@ -877,6 +878,7 @@ export function startBot() {
         return;
       }
 
+    if (handleLopLeave(api, message, currentUserID)) return; 
       if (message.type !== "message") return;
       const { threadID, body, senderID, messageID } = message;
       if (senderID === currentUserID) return;
